@@ -112,7 +112,7 @@ class ProductController extends Controller
     }
 
 
-    public function decreaseCart($id)
+    public function decreaseQuantity($id)
     {
         $product_decrement = Pos::where('id', $id)->decrement('quantity');
 

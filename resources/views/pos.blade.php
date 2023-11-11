@@ -283,6 +283,7 @@
             console.log("ProductQuantity ", productQuantity);
             data.forEach(function(product, index) {
                 var disableIncreaseButton = productQuantity <= product.quantity ? 'disabled' : '';
+                var disableDecreaseButton = product.quantity < 2 ? 'disabled' : '';
                 var row = '<tr>' +
                     '<td>' + (index + 1) + '</td>' +
                     '<td>' + product.name + '</td>' +
@@ -290,7 +291,9 @@
                     '<input id="' + product.id + '-quantity" type="text" value="' + product.quantity +
                     '" readonly style="width: 60px;"><br>' +
                     '<button data-quantity="' + product.quantity + '" data-id="' + product.id + '" ' +
-                    disableIncreaseButton + ' class="badge badge-sm badge-success increase-quantity">+</button>' +
+                    disableIncreaseButton + ' class="badge badge-sm badge-success increase-quantity ml-2">+</button>' +
+                    '<button data-quantity="' + product.quantity + '" data-id="' + product.id + '" ' +
+                    disableDecreaseButton + ' class="badge badge-sm badge-danger decrease-quantity ml-1">-</button>' +
                     // Add other buttons here (delete, decrease, etc.)
                     '</td>' +
                     '<td>' + product.price + '</td>' +
@@ -308,6 +311,11 @@
                 var proId = $(this).data("id");
                 increaseQuantity(proId);
             });
+
+            $(".decrease-quantity").on("click", function(){
+                var proId = $(this).data("id");
+                decreaseQuantity(proId);
+            })
         }
 
 
@@ -365,6 +373,31 @@
             });
         }
 
+
+        //================== decreaseQuantity  ========================
+
+        function decreaseQuantity(proId){
+          
+            $.ajax({
+                type: "GET",
+                url: "/decrease/quantity/" + proId,
+                data: {
+                    _token: "{{ csrf_token() }}"
+                },
+                success: function(response) {
+                    let newValue = parseInt($('#' + proId + '-quantity').val()) - 1;
+                    $('#' + proId + '-quantity').val(newValue)
+
+                    // After increasing quantity, update the total and discount
+                    displayProductsAndUpdateCalculate();
+                },
+                error: function(error) {
+                    // Handle errors (if any)
+                    console.error(error);
+                    alert("Failed to Increase Item");
+                }
+            });
+        }
 
         // Function to calculate the total quantity from the data
         function calculateTotalQuantity(data) {
