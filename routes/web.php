@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
 
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -24,3 +25,4 @@ Route::get('/increase/quantity/{id}', [ProductController::class, 'increaseQuanti
 Route::get('/decrease/quantity/{id}', [ProductController::class, 'decreaseQuantity'])->name('decrease.quantity');
 Route::get('/total/pos', [ProductController::class, 'getAllPos'])->name('total.pos');
 Route::get('/total/quantity', [ProductController::class, 'totalQuantity'])->name('total.quantity');
+Route::delete('/delete/pos/{id}', [ProductController::class, 'deletePos'])->name('delete.pos');

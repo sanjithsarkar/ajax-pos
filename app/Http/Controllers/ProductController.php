@@ -67,7 +67,23 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
-        //
+        // 
+    }
+
+    public function deletePos($id){
+        
+        // // Find the product by ID
+        $product = Pos::where('id', $id)->first();
+
+        // Check if the product exists
+        if (!$product) {
+            return response()->json(['error' => 'Product not found'], 404);
+        }
+
+        $product->delete();
+
+        return response()->json(['message' => 'product deleted Successfully!!']);
+
     }
 
     public function insertPos(Request $request)
@@ -95,6 +111,11 @@ class ProductController extends Controller
             }
         } elseif ($product->quantity > $isExit->quantity) {
             $increaseQuantity = Pos::where('pro_id', $productId)->increment('quantity');
+
+            $posData = Pos::where('pro_id', $productId)->first();
+            $sub_total = $posData->quantity * $posData->price;
+            Pos::where('pro_id', $productId)->update(['sub_total' => $sub_total]);
+
             return response()->json(['success' => 'Increment This Product!!']);
         } else {
             return response()->json(['error' => 'The product is stock out!!']);

@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Document</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.2.0/css/adminlte.min.css">
@@ -284,24 +285,29 @@
             data.forEach(function(product, index) {
                 var disableIncreaseButton = productQuantity <= product.quantity ? 'disabled' : '';
                 var disableDecreaseButton = product.quantity < 2 ? 'disabled' : '';
-                var row = '<tr>' +
+                var row = '<tr id="productRow' + product.id + '">' +
                     '<td>' + (index + 1) + '</td>' +
                     '<td>' + product.name + '</td>' +
                     '<td>' +
                     '<input id="' + product.id + '-quantity" type="text" value="' + product.quantity +
                     '" readonly style="width: 60px;"><br>' +
                     '<button data-quantity="' + product.quantity + '" data-id="' + product.id + '" ' +
-                    disableIncreaseButton + ' class="badge badge-sm badge-success increase-quantity ml-2">+</button>' +
+                    disableIncreaseButton +
+                    ' class="badge badge-sm badge-success increase-quantity ml-2">+</button>' +
                     '<button data-quantity="' + product.quantity + '" data-id="' + product.id + '" ' +
-                    disableDecreaseButton + ' class="badge badge-sm badge-danger decrease-quantity ml-1">-</button>' +
+                    disableDecreaseButton +
+                    ' class="badge badge-sm badge-danger decrease-quantity ml-1">-</button>' +
                     // Add other buttons here (delete, decrease, etc.)
                     '</td>' +
                     '<td>' + product.price + '</td>' +
                     '<td><span class="badge badge-success">' + product.sub_total + '</span></td>' +
                     '<td><a href="#" class="btn btn-sm btn-primary">Detail</a></td>' +
-                    '<td><button data-id="' + product.id +
-                    '" class="badge badge-sm badge-danger delete-item">X</button></td>' +
-                    '</tr>';
+                    // '<td><button data-id="' + product.id +
+                    // '" class="badge badge-sm badge-danger delete-item">X</button></td>' +
+                    '<td><button onclick="deleteItem(' + product.id +
+                    ')" class="badge badge-sm badge-danger delete-item">X</button></td>'
+
+                '</tr>';
                 productList.append(row);
             });
 
@@ -312,10 +318,15 @@
                 increaseQuantity(proId);
             });
 
-            $(".decrease-quantity").on("click", function(){
+            $(".decrease-quantity").on("click", function() {
                 var proId = $(this).data("id");
                 decreaseQuantity(proId);
             })
+
+            // $(".delete-item").on('click', function() {
+            //     var proId = $(this).data("id");
+            //     deleteItem(proId);
+            // })
         }
 
 
@@ -376,8 +387,8 @@
 
         //================== decreaseQuantity  ========================
 
-        function decreaseQuantity(proId){
-          
+        function decreaseQuantity(proId) {
+
             $.ajax({
                 type: "GET",
                 url: "/decrease/quantity/" + proId,
@@ -431,6 +442,43 @@
             var discountAmount = (subTotal * discount) / 100;
 
             return discountAmount;
+        }
+
+        function deleteItem(proId) {
+            var baseurl = window.location.origin;
+            var fullurl = `${baseurl}/delete/pos/${proId}`;
+            console.log('fullurl = ', fullurl);
+
+            // Get CSRF token from meta tag
+            var csrfToken = $('meta[name="csrf-token"]').attr('content');
+
+            // Make the DELETE request
+            fetch(fullurl, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                    },
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json(); // Parse the response JSON
+                })
+                .then(data => {
+                    // location.reload();
+                    // Remove the corresponding table row
+                    const rowToRemove = document.getElementById(`productRow${proId}`);
+                    if (rowToRemove) {
+                        rowToRemove.remove();
+                        displayProductsAndUpdateCalculate();
+                    }
+                    console.log(data.message); // Handle success response
+                })
+                .catch(error => {
+                    console.error('Error:', error); // Handle error
+                });
         }
     </script>
 
