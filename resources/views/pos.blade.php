@@ -137,7 +137,7 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-3">
+                    <div class="col-md-12">
 
                         @foreach ($products as $product)
                             <button class="btn btn-sm addToPos" data-pro_id="{{ $product->id }}"
